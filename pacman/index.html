@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>PAC-MAN: THE MAN EDITION</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="arcade-cabinet">
+    <!-- Top Header & HUD -->
+    <header class="hud">
+      <div class="hud-item score-box">
+        <span class="hud-label">SKÓRE</span>
+        <span id="scoreDisplay" class="hud-value neon-cyan">0</span>
+      </div>
+
+      <div class="hud-item high-score-box">
+        <span class="hud-label">NEJLEPŠÍ</span>
+        <span id="highScoreDisplay" class="hud-value neon-blue">0</span>
+      </div>
+
+      <div class="hud-item level-box">
+        <span class="hud-label">LEVEL</span>
+        <span id="levelDisplay" class="hud-value neon-cyan">1</span>
+      </div>
+
+      <div class="hud-item speed-box">
+        <span class="hud-label">RYCHLOST</span>
+        <span id="speedDisplay" class="hud-value neon-gold">100%</span>
+      </div>
+
+      <div class="hud-item lives-box">
+        <span class="hud-label">ŽIVOTY</span>
+        <div id="livesContainer" class="lives-icons"></div>
+      </div>
+
+      <div class="hud-controls">
+        <button id="muteBtn" class="arcade-btn icon-btn" title="Vypnout/Zapnout zvuk (M)">🔊</button>
+        <button id="pauseBtn" class="arcade-btn icon-btn" title="Pauza (P / Esc)">⏸️</button>
+      </div>
+    </header>
+
+    <!-- Boss Health Bar (Active when The Man is alive) -->
+    <div id="bossBarContainer" class="boss-bar-container hidden">
+      <div class="boss-title-row">
+        <span class="boss-name">⚠️ THE MAN ⚠️</span>
+        <span id="bossHpText" class="boss-hp-text">HP: 3 / 3</span>
+      </div>
+      <div class="boss-bar-bg">
+        <div id="bossHpFill" class="boss-bar-fill" style="width: 100%;"></div>
+      </div>
+    </div>
+
+    <!-- Active Bonuses Status Bar -->
+    <div id="bonusStatusContainer" class="bonus-status-container">
+      <div id="wallPassBadge" class="bonus-badge hidden">
+        <span class="badge-icon">🌀</span>
+        <span class="badge-name">PROCHÁZENÍ ZDMI</span>
+        <div class="badge-meter"><div id="wallPassMeter" class="badge-fill"></div></div>
+        <span id="wallPassTimerText" class="badge-time">5.0s</span>
+      </div>
+      <div id="attackBadge" class="bonus-badge attack-badge hidden">
+        <span class="badge-icon">⚡</span>
+        <span class="badge-name">ÚTOK NA BOSSE</span>
+        <div class="badge-meter"><div id="attackMeter" class="badge-fill"></div></div>
+        <span id="attackTimerText" class="badge-time">6.0s</span>
+      </div>
+    </div>
+
+    <!-- Canvas Game Viewport -->
+    <div class="canvas-wrapper">
+      <canvas id="gameCanvas" width="560" height="620"></canvas>
+
+      <!-- Overlay Banner (for "THE MAN IS COMING!", level cleared, etc.) -->
+      <div id="bannerOverlay" class="banner-overlay hidden">
+        <div id="bannerText" class="banner-text">THE MAN IS COMING!</div>
+      </div>
+
+      <!-- Start Menu Modal -->
+      <div id="startModal" class="game-modal">
+        <div class="modal-content">
+          <h1 class="game-title">PAC-MAN<br><span class="subtitle">THE MAN EDITION</span></h1>
+          <div class="boss-teaser">
+            <img src="zeman.png" alt="The Man" class="teaser-img" onerror="this.style.display='none'">
+            <p class="teaser-text">Při 1 000 bodech přichází <strong>THE MAN</strong>!</p>
+          </div>
+
+          <div class="features-list">
+            <div class="feature-item">
+              <span class="feat-icon">⚡</span>
+              <span><strong>Zrychlování:</strong> Čím víc bodů, tím rychlejší Pac-Man.</span>
+            </div>
+            <div class="feature-item">
+              <span class="feat-icon">🌀</span>
+              <span><strong>Procházení zdmi:</strong> Seber tyrkysový bonus a projdi zdí!</span>
+            </div>
+            <div class="feature-item">
+              <span class="feat-icon">🥃</span>
+              <span><strong>Boss Fight:</strong> Získej útočný bonus a sraž Bosse 3 údery.</span>
+            </div>
+          </div>
+
+          <div class="controls-guide">
+            <p><strong>Ovládání:</strong> Šipky / WASD &bull; <strong>P / Esc:</strong> Pauza &bull; <strong>M:</strong> Zvuk</p>
+          </div>
+
+          <button id="startBtn" class="arcade-btn start-btn">HRÁT HRU</button>
+        </div>
+      </div>
+
+      <!-- Pause Modal -->
+      <div id="pauseModal" class="game-modal hidden">
+        <div class="modal-content pause-content">
+          <h2>HRA POZASTAVENA</h2>
+          <p>Stiskni <strong>P</strong> nebo klikni pro pokračování</p>
+          <button id="resumeBtn" class="arcade-btn resume-btn">POKRAČOVAT</button>
+        </div>
+      </div>
+
+      <!-- Game Over Modal -->
+      <div id="gameOverModal" class="game-modal hidden">
+        <div class="modal-content game-over-content">
+          <h2 class="neon-red">GAME OVER</h2>
+          <div class="result-stats">
+            <p>Konečné skóre: <span id="finalScore" class="neon-cyan">0</span></p>
+            <p>Dosažený level: <span id="finalLevel" class="neon-blue">1</span></p>
+            <p id="newHighScoreAlert" class="new-record hidden">🏆 NOVÝ REKORD! 🏆</p>
+          </div>
+          <button id="restartBtn" class="arcade-btn restart-btn">HRÁT ZNOVU</button>
+        </div>
+      </div>
+
+      <!-- Victory / Next Level Modal (optional celebratory card) -->
+      <div id="levelClearModal" class="game-modal hidden">
+        <div class="modal-content level-clear-content">
+          <h2 class="neon-gold">ÚROVEŇ DOKONČENA!</h2>
+          <p>Bonus za dokončení: <strong>+200 bodů</strong></p>
+          <button id="nextLevelBtn" class="arcade-btn resume-btn">DALŠÍ ÚROVEŇ</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- On-Screen Virtual D-Pad for Mobile / Touch -->
+    <div id="touchControls" class="touch-controls">
+      <div class="dpad-row">
+        <button class="dpad-btn" data-dir="up">▲</button>
+      </div>
+      <div class="dpad-row">
+        <button class="dpad-btn" data-dir="left">◀</button>
+        <div class="dpad-center"></div>
+        <button class="dpad-btn" data-dir="right">▶</button>
+      </div>
+      <div class="dpad-row">
+        <button class="dpad-btn" data-dir="down">▼</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
