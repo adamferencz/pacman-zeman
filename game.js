@@ -399,15 +399,15 @@ class Pacman {
   }
 
   reset() {
-    // Starting tile (center bottom corridor: row 23, col 13.5)
-    this.tileX = 13.5;
+    // Starting tile: exact center of tile 13, row 23 (walkable corridor)
+    this.tileX = 13;
     this.tileY = 23;
     this.x = (this.tileX + 0.5) * CONFIG.TILE_SIZE;
     this.y = (this.tileY + 0.5) * CONFIG.TILE_SIZE;
     this.radius = CONFIG.TILE_SIZE * 0.44;
 
-    this.currentDir = DIR.NONE;
-    this.desiredDir = DIR.NONE;
+    this.currentDir = DIR.LEFT;
+    this.desiredDir = DIR.LEFT;
     this.speed = CONFIG.BASE_SPEED;
 
     this.mouthAngle = 0.2;
@@ -475,27 +475,37 @@ class Pacman {
     const ts = CONFIG.TILE_SIZE;
     const moveDist = this.speed * dt;
 
+    const currTileX = Math.floor(this.x / ts);
+    const currTileY = Math.floor(this.y / ts);
+    const centerTileX = (currTileX + 0.5) * ts;
+    const centerTileY = (currTileY + 0.5) * ts;
+
     // Try applying desired turn
     if (this.desiredDir !== DIR.NONE && this.desiredDir !== this.currentDir) {
-      // Direct reverse turn is always allowed
-      if (this.desiredDir.x === -this.currentDir.x && this.desiredDir.y === -this.currentDir.y) {
+      // Case 1: Stopped Pac-Man starts moving immediately if direction is walkable
+      if (this.currentDir === DIR.NONE) {
+        const targetTileX = currTileX + this.desiredDir.x;
+        const targetTileY = currTileY + this.desiredDir.y;
+        if (this.canMoveToTile(targetTileX, targetTileY)) {
+          this.x = centerTileX;
+          this.y = centerTileY;
+          this.currentDir = this.desiredDir;
+        }
+      }
+      // Case 2: Exact reverse direction (180 deg) is always allowed anytime
+      else if (this.desiredDir.x === -this.currentDir.x && this.desiredDir.y === -this.currentDir.y) {
         this.currentDir = this.desiredDir;
-      } else {
-        // Turning into perpendicular corridor: check if aligned with tile center
-        const currTileX = Math.floor(this.x / ts);
-        const currTileY = Math.floor(this.y / ts);
-        const centerTileX = (currTileX + 0.5) * ts;
-        const centerTileY = (currTileY + 0.5) * ts;
-
+      }
+      // Case 3: Perpendicular turn into a corridor when near tile center
+      else {
         const distFromCenter = Math.hypot(this.x - centerTileX, this.y - centerTileY);
-        const turnTolerance = Math.max(5, moveDist * 1.5);
+        const turnTolerance = Math.max(9, moveDist * 2);
 
         if (distFromCenter <= turnTolerance) {
           const targetTileX = currTileX + this.desiredDir.x;
           const targetTileY = currTileY + this.desiredDir.y;
 
           if (this.canMoveToTile(targetTileX, targetTileY)) {
-            // Snap to center and turn
             this.x = centerTileX;
             this.y = centerTileY;
             this.currentDir = this.desiredDir;
@@ -506,11 +516,18 @@ class Pacman {
 
     // Advance in current direction
     if (this.currentDir !== DIR.NONE) {
+      // Lock perpendicular axis to corridor center to avoid drift
+      if (this.currentDir.x !== 0) {
+        this.y = centerTileY;
+      } else if (this.currentDir.y !== 0) {
+        this.x = centerTileX;
+      }
+
       const nextX = this.x + this.currentDir.x * moveDist;
       const nextY = this.y + this.currentDir.y * moveDist;
 
       // Wrap around tunnel at row 14
-      if (Math.floor(this.y / ts) === 14) {
+      if (currTileY === 14) {
         if (nextX < -ts * 0.5) {
           this.x = (CONFIG.COLS - 0.5) * ts;
           return;
@@ -520,7 +537,7 @@ class Pacman {
         }
       }
 
-      // Check collision along direction
+      // Check collision along movement direction
       const checkDist = this.radius * 0.85;
       const frontX = nextX + this.currentDir.x * checkDist;
       const frontY = nextY + this.currentDir.y * checkDist;
@@ -531,11 +548,9 @@ class Pacman {
         this.x = nextX;
         this.y = nextY;
       } else {
-        // Hit wall: snap to center of current tile
-        const currTileX = Math.floor(this.x / ts);
-        const currTileY = Math.floor(this.y / ts);
-        this.x = (currTileX + 0.5) * ts;
-        this.y = (currTileY + 0.5) * ts;
+        // Hit wall: snap to center of current tile and stop
+        this.x = centerTileX;
+        this.y = centerTileY;
         this.currentDir = DIR.NONE;
       }
     }
@@ -1453,33 +1468,33 @@ class Game {
         return;
       }
 
+      if (this.state === 'START') {
+        const startKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'w', 's', 'a', 'd', 'W', 'S', 'A', 'D', 'Enter', ' '];
+        if (startKeys.includes(e.key) || ['KeyW', 'KeyS', 'KeyA', 'KeyD', 'Space', 'Enter'].includes(e.code)) {
+          this.sound.init();
+          this.startModal.classList.add('hidden');
+          this.state = 'PLAYING';
+          this.showBanner('START!', 1200);
+        }
+      }
+
       if (this.state !== 'PLAYING') return;
 
-      switch (e.key) {
-        case 'ArrowUp':
-        case 'w':
-        case 'W':
-          this.pacman.desiredDir = DIR.UP;
-          e.preventDefault();
-          break;
-        case 'ArrowDown':
-        case 's':
-        case 'S':
-          this.pacman.desiredDir = DIR.DOWN;
-          e.preventDefault();
-          break;
-        case 'ArrowLeft':
-        case 'a':
-        case 'A':
-          this.pacman.desiredDir = DIR.LEFT;
-          e.preventDefault();
-          break;
-        case 'ArrowRight':
-        case 'd':
-        case 'D':
-          this.pacman.desiredDir = DIR.RIGHT;
-          e.preventDefault();
-          break;
+      const code = e.code;
+      const key = e.key;
+
+      if (key === 'ArrowUp' || key === 'w' || key === 'W' || code === 'KeyW' || code === 'ArrowUp') {
+        this.pacman.desiredDir = DIR.UP;
+        e.preventDefault();
+      } else if (key === 'ArrowDown' || key === 's' || key === 'S' || code === 'KeyS' || code === 'ArrowDown') {
+        this.pacman.desiredDir = DIR.DOWN;
+        e.preventDefault();
+      } else if (key === 'ArrowLeft' || key === 'a' || key === 'A' || code === 'KeyA' || code === 'ArrowLeft') {
+        this.pacman.desiredDir = DIR.LEFT;
+        e.preventDefault();
+      } else if (key === 'ArrowRight' || key === 'd' || key === 'D' || code === 'KeyD' || code === 'ArrowRight') {
+        this.pacman.desiredDir = DIR.RIGHT;
+        e.preventDefault();
       }
     });
 
