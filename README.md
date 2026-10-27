@@ -4,11 +4,19 @@ Kompletní webová arkádová hra na motivy Pac-Mana vytvořená v čistém **HT
 
 ---
 
-## 🚀 Jak hru spustit
+## 🌐 Živá online verze (GitHub Pages)
 
-1. Otevři soubor `index.html` v libovolném moderním webovém prohlížeči (Chrome, Firefox, Edge, Safari).
-2. Není potřeba žádný webový server, databáze ani instalace balíčků.
-3. Klikni na tlačítko **HRÁT HRU** a bav se!
+Hru můžeš okamžitě hrát online v prohlížeči zde:
+👉 **[https://adamferencz.github.io/pacman-zeman/](https://adamferencz.github.io/pacman-zeman/)**
+
+---
+
+## 🚀 Jak hru spustit lokálně
+
+1. Naklonuj repozitář nebo stáhni ZIP.
+2. Otevři soubor `index.html` v libovolném moderním webovém prohlížeči (Chrome, Firefox, Edge, Safari).
+3. Není potřeba žádný webový server, databáze ani instalace balíčků.
+4. Klikni na tlačítko **HRÁT HRU** a bav se!
 
 ---
 
