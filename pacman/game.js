@@ -480,53 +480,30 @@ class Pacman {
     const centerTileX = (currTileX + 0.5) * ts;
     const centerTileY = (currTileY + 0.5) * ts;
 
-    // Try applying desired turn
-    if (this.desiredDir !== DIR.NONE && this.desiredDir !== this.currentDir) {
-      // Case 1: Stopped Pac-Man starts moving immediately if direction is walkable
-      if (this.currentDir === DIR.NONE) {
-        const targetTileX = currTileX + this.desiredDir.x;
-        const targetTileY = currTileY + this.desiredDir.y;
-        if (this.canMoveToTile(targetTileX, targetTileY)) {
-          this.x = centerTileX;
-          this.y = centerTileY;
-          this.currentDir = this.desiredDir;
-        }
-      }
-      // Case 2: Exact reverse direction (180 deg) is always allowed anytime
-      else if (this.desiredDir.x === -this.currentDir.x && this.desiredDir.y === -this.currentDir.y) {
+    // Instant reverse direction anytime
+    if (this.desiredDir !== DIR.NONE && this.desiredDir.x === -this.currentDir.x && this.desiredDir.y === -this.currentDir.y) {
+      this.currentDir = this.desiredDir;
+    }
+
+    // From standstill, start immediately if desired direction is open
+    if (this.currentDir === DIR.NONE && this.desiredDir !== DIR.NONE) {
+      const targetTileX = currTileX + this.desiredDir.x;
+      const targetTileY = currTileY + this.desiredDir.y;
+      if (this.canMoveToTile(targetTileX, targetTileY)) {
+        this.x = centerTileX;
+        this.y = centerTileY;
         this.currentDir = this.desiredDir;
-      }
-      // Case 3: Perpendicular turn into a corridor when near tile center
-      else {
-        const distFromCenter = Math.hypot(this.x - centerTileX, this.y - centerTileY);
-        const turnTolerance = Math.max(9, moveDist * 2);
-
-        if (distFromCenter <= turnTolerance) {
-          const targetTileX = currTileX + this.desiredDir.x;
-          const targetTileY = currTileY + this.desiredDir.y;
-
-          if (this.canMoveToTile(targetTileX, targetTileY)) {
-            this.x = centerTileX;
-            this.y = centerTileY;
-            this.currentDir = this.desiredDir;
-          }
-        }
       }
     }
 
-    // Advance in current direction
-    if (this.currentDir !== DIR.NONE) {
-      // Lock perpendicular axis to corridor center to avoid drift
-      if (this.currentDir.x !== 0) {
-        this.y = centerTileY;
-      } else if (this.currentDir.y !== 0) {
-        this.x = centerTileX;
-      }
+    if (this.currentDir === DIR.NONE) return;
 
+    // Movement along X axis (Horizontal)
+    if (this.currentDir.x !== 0) {
+      this.y = centerTileY; // Keep centered on corridor
       const nextX = this.x + this.currentDir.x * moveDist;
-      const nextY = this.y + this.currentDir.y * moveDist;
 
-      // Wrap around tunnel at row 14
+      // Handle wrap-around tunnel at row 14
       if (currTileY === 14) {
         if (nextX < -ts * 0.5) {
           this.x = (CONFIG.COLS - 0.5) * ts;
@@ -537,22 +514,91 @@ class Pacman {
         }
       }
 
-      // Check collision along movement direction
-      const checkDist = this.radius * 0.85;
-      const frontX = nextX + this.currentDir.x * checkDist;
-      const frontY = nextY + this.currentDir.y * checkDist;
-      const frontTileX = Math.floor(frontX / ts);
-      const frontTileY = Math.floor(frontY / ts);
+      // Check if crossing tile center in movement direction
+      const crossedCenter = (this.currentDir.x > 0 && this.x <= centerTileX && nextX >= centerTileX) ||
+                            (this.currentDir.x < 0 && this.x >= centerTileX && nextX <= centerTileX);
 
-      if (this.canMoveToTile(frontTileX, frontTileY)) {
-        this.x = nextX;
-        this.y = nextY;
-      } else {
-        // Hit wall: snap to center of current tile and stop
-        this.x = centerTileX;
-        this.y = centerTileY;
-        this.currentDir = DIR.NONE;
+      if (crossedCenter) {
+        const excess = Math.abs(nextX - centerTileX);
+
+        // Can we make a perpendicular turn?
+        if (this.desiredDir !== DIR.NONE && this.desiredDir.x === 0 && this.canMoveToTile(currTileX + this.desiredDir.x, currTileY + this.desiredDir.y)) {
+          this.x = centerTileX;
+          this.y = centerTileY;
+          this.currentDir = this.desiredDir;
+          this.x += this.currentDir.x * excess;
+          this.y += this.currentDir.y * excess;
+          return;
+        }
+
+        // Check if wall ahead
+        const nextTileX = currTileX + this.currentDir.x;
+        if (!this.canMoveToTile(nextTileX, currTileY)) {
+          this.x = centerTileX;
+          this.currentDir = DIR.NONE;
+          return;
+        }
+      } else if (this.currentDir.x > 0 && this.x > centerTileX) {
+        // Already past center: check wall ahead
+        if (!this.canMoveToTile(currTileX + 1, currTileY) && nextX >= centerTileX) {
+          this.x = centerTileX;
+          this.currentDir = DIR.NONE;
+          return;
+        }
+      } else if (this.currentDir.x < 0 && this.x < centerTileX) {
+        if (!this.canMoveToTile(currTileX - 1, currTileY) && nextX <= centerTileX) {
+          this.x = centerTileX;
+          this.currentDir = DIR.NONE;
+          return;
+        }
       }
+
+      this.x = nextX;
+    }
+    // Movement along Y axis (Vertical)
+    else if (this.currentDir.y !== 0) {
+      this.x = centerTileX; // Keep centered on corridor
+      const nextY = this.y + this.currentDir.y * moveDist;
+
+      // Check if crossing tile center
+      const crossedCenter = (this.currentDir.y > 0 && this.y <= centerTileY && nextY >= centerTileY) ||
+                            (this.currentDir.y < 0 && this.y >= centerTileY && nextY <= centerTileY);
+
+      if (crossedCenter) {
+        const excess = Math.abs(nextY - centerTileY);
+
+        // Can we make a perpendicular turn?
+        if (this.desiredDir !== DIR.NONE && this.desiredDir.y === 0 && this.canMoveToTile(currTileX + this.desiredDir.x, currTileY + this.desiredDir.y)) {
+          this.x = centerTileX;
+          this.y = centerTileY;
+          this.currentDir = this.desiredDir;
+          this.x += this.currentDir.x * excess;
+          this.y += this.currentDir.y * excess;
+          return;
+        }
+
+        // Check if wall ahead
+        const nextTileY = currTileY + this.currentDir.y;
+        if (!this.canMoveToTile(currTileX, nextTileY)) {
+          this.y = centerTileY;
+          this.currentDir = DIR.NONE;
+          return;
+        }
+      } else if (this.currentDir.y > 0 && this.y > centerTileY) {
+        if (!this.canMoveToTile(currTileX, currTileY + 1) && nextY >= centerTileY) {
+          this.y = centerTileY;
+          this.currentDir = DIR.NONE;
+          return;
+        }
+      } else if (this.currentDir.y < 0 && this.y < centerTileY) {
+        if (!this.canMoveToTile(currTileX, currTileY - 1) && nextY <= centerTileY) {
+          this.y = centerTileY;
+          this.currentDir = DIR.NONE;
+          return;
+        }
+      }
+
+      this.y = nextY;
     }
 
     this.tileX = Math.floor(this.x / ts);
@@ -746,23 +792,47 @@ class Ghost {
     const centerTileX = (currTileX + 0.5) * ts;
     const centerTileY = (currTileY + 0.5) * ts;
 
-    const distFromCenter = Math.hypot(this.x - centerTileX, this.y - centerTileY);
-
-    // At intersection or tile center: decide next direction
-    if (distFromCenter <= Math.max(3, moveDist)) {
-      this.x = centerTileX;
+    // Movement along X axis
+    if (this.currentDir.x !== 0) {
       this.y = centerTileY;
-      this.chooseNextDirection(currTileX, currTileY, pacman);
+      const nextX = this.x + this.currentDir.x * moveDist;
+
+      // Wrap tunnel at row 14
+      if (currTileY === 14) {
+        if (nextX < -ts * 0.5) { this.x = (CONFIG.COLS - 0.5) * ts; return; }
+        else if (nextX > (CONFIG.COLS + 0.5) * ts) { this.x = -ts * 0.5; return; }
+      }
+
+      const crossedCenter = (this.currentDir.x > 0 && this.x <= centerTileX && nextX >= centerTileX) ||
+                            (this.currentDir.x < 0 && this.x >= centerTileX && nextX <= centerTileX);
+
+      if (crossedCenter) {
+        const excess = Math.abs(nextX - centerTileX);
+        this.x = centerTileX;
+        this.chooseNextDirection(currTileX, currTileY, pacman);
+        this.x += this.currentDir.x * excess;
+        this.y += this.currentDir.y * excess;
+      } else {
+        this.x = nextX;
+      }
     }
+    // Movement along Y axis
+    else if (this.currentDir.y !== 0) {
+      this.x = centerTileX;
+      const nextY = this.y + this.currentDir.y * moveDist;
 
-    // Advance
-    this.x += this.currentDir.x * moveDist;
-    this.y += this.currentDir.y * moveDist;
+      const crossedCenter = (this.currentDir.y > 0 && this.y <= centerTileY && nextY >= centerTileY) ||
+                            (this.currentDir.y < 0 && this.y >= centerTileY && nextY <= centerTileY);
 
-    // Wrap tunnel
-    if (currTileY === 14) {
-      if (this.x < -ts * 0.5) this.x = (CONFIG.COLS - 0.5) * ts;
-      else if (this.x > (CONFIG.COLS + 0.5) * ts) this.x = -ts * 0.5;
+      if (crossedCenter) {
+        const excess = Math.abs(nextY - centerTileY);
+        this.y = centerTileY;
+        this.chooseNextDirection(currTileX, currTileY, pacman);
+        this.x += this.currentDir.x * excess;
+        this.y += this.currentDir.y * excess;
+      } else {
+        this.y = nextY;
+      }
     }
 
     this.tileX = Math.floor(this.x / ts);
@@ -1213,9 +1283,56 @@ class Game {
     this.attackBonus = null;
     this.bonusSpawnTimer = 10;
 
+    // Cache pre-rendered maze with neon glow onto offscreen canvas for 60/120 FPS
+    this.initMazeCanvas();
+
     // Pre-place a Wall-Pass Bonus on the map
     this.spawnWallPassBonus(1, 6);
     this.spawnWallPassBonus(26, 6);
+  }
+
+  initMazeCanvas() {
+    if (!this.mazeCanvas) {
+      this.mazeCanvas = document.createElement('canvas');
+      this.mazeCanvas.width = this.canvas.width;
+      this.mazeCanvas.height = this.canvas.height;
+    }
+    const mctx = this.mazeCanvas.getContext('2d');
+    const ts = CONFIG.TILE_SIZE;
+
+    // Clear and draw background
+    mctx.fillStyle = '#030712';
+    mctx.fillRect(0, 0, this.mazeCanvas.width, this.mazeCanvas.height);
+
+    // Draw walls with neon glow once onto offscreen buffer
+    mctx.save();
+    mctx.strokeStyle = CONFIG.COLOR_WALL;
+    mctx.shadowColor = CONFIG.COLOR_WALL_GLOW;
+    mctx.shadowBlur = 8;
+    mctx.lineWidth = 2.5;
+
+    for (let r = 0; r < CONFIG.ROWS; r++) {
+      for (let c = 0; c < CONFIG.COLS; c++) {
+        const cell = MAZE_TEMPLATE[r][c];
+        if (cell === 1) {
+          const x = c * ts;
+          const y = r * ts;
+          mctx.strokeRect(x + 2, y + 2, ts - 4, ts - 4);
+        } else if (cell === 4) {
+          mctx.save();
+          mctx.strokeStyle = '#f43f5e';
+          mctx.shadowColor = '#f43f5e';
+          mctx.shadowBlur = 6;
+          mctx.lineWidth = 3;
+          mctx.beginPath();
+          mctx.moveTo(c * ts, (r + 0.5) * ts);
+          mctx.lineTo((c + 1) * ts, (r + 0.5) * ts);
+          mctx.stroke();
+          mctx.restore();
+        }
+      }
+    }
+    mctx.restore();
   }
 
   getMapCell(tx, ty) {
@@ -1644,8 +1761,10 @@ class Game {
 
   loop(timestamp) {
     if (!this.lastTime) this.lastTime = timestamp;
-    const dt = Math.min((timestamp - this.lastTime) / 1000, 0.1); // Cap delta time
+    const rawDt = (timestamp - this.lastTime) / 1000;
     this.lastTime = timestamp;
+    // Cap dt at 40ms (equivalent to min 25fps) to prevent movement spikes/teleports
+    const dt = Math.min(rawDt, 0.04);
 
     if (this.state === 'PLAYING') {
       this.update(dt);
@@ -1811,57 +1930,28 @@ class Game {
   }
 
   drawMaze(ctx) {
-    const ts = CONFIG.TILE_SIZE;
-
-    ctx.save();
-    ctx.strokeStyle = CONFIG.COLOR_WALL;
-    ctx.shadowColor = CONFIG.COLOR_WALL_GLOW;
-    ctx.shadowBlur = 8;
-    ctx.lineWidth = 2.5;
-
-    for (let r = 0; r < CONFIG.ROWS; r++) {
-      for (let c = 0; c < CONFIG.COLS; c++) {
-        const cell = this.map[r][c];
-
-        if (cell === 1) {
-          // Draw wall block with inner neon border
-          const x = c * ts;
-          const y = r * ts;
-          ctx.strokeRect(x + 2, y + 2, ts - 4, ts - 4);
-        } else if (cell === 4) {
-          // Ghost gate door (magenta neon line)
-          ctx.save();
-          ctx.strokeStyle = '#f43f5e';
-          ctx.shadowColor = '#f43f5e';
-          ctx.shadowBlur = 6;
-          ctx.lineWidth = 3;
-          ctx.beginPath();
-          ctx.moveTo(c * ts, (r + 0.5) * ts);
-          ctx.lineTo((c + 1) * ts, (r + 0.5) * ts);
-          ctx.stroke();
-          ctx.restore();
-        }
-      }
+    if (this.mazeCanvas) {
+      ctx.drawImage(this.mazeCanvas, 0, 0);
     }
-    ctx.restore();
   }
 
   drawDots(ctx) {
     const ts = CONFIG.TILE_SIZE;
     ctx.save();
     ctx.fillStyle = CONFIG.COLOR_DOT;
-    ctx.shadowColor = 'rgba(224, 247, 250, 0.8)';
-    ctx.shadowBlur = 6;
+    ctx.beginPath();
 
     for (let r = 0; r < CONFIG.ROWS; r++) {
       for (let c = 0; c < CONFIG.COLS; c++) {
         if (this.map[r][c] === 2) {
-          ctx.beginPath();
-          ctx.arc((c + 0.5) * ts, (r + 0.5) * ts, 2.8, 0, Math.PI * 2);
-          ctx.fill();
+          const cx = (c + 0.5) * ts;
+          const cy = (r + 0.5) * ts;
+          ctx.moveTo(cx + 2.8, cy);
+          ctx.arc(cx, cy, 2.8, 0, Math.PI * 2);
         }
       }
     }
+    ctx.fill();
     ctx.restore();
   }
 
