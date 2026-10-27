@@ -477,6 +477,7 @@ canvas {
   width: 100%;
   font-size: 13px;
   padding: 12px 18px;
+  margin-bottom: 12px;
   background: linear-gradient(180deg, #06b6d4, #0891b2);
   border-color: #22d3ee;
 }
@@ -670,7 +671,20 @@ canvas {
   }
 
   .dpad-cross {
-    grid-template-columns: 46px 46px 46px;
-    grid-template-rows: 40px 40px 40px;
+    grid-template-columns: 48px 48px 48px;
+    grid-template-rows: 48px 48px 48px;
   }
+}
+
+@media (max-width: 640px) and (max-height: 650px) {
+  canvas { max-height: calc(100dvh - 272px); }
+  .touch-controls { margin-top: 5px; }
+  .dpad-cross {
+    grid-template-columns: 44px 44px 44px;
+    grid-template-rows: 44px 44px 44px;
+    gap: 3px;
+    padding: 4px;
+  }
+  .touch-hint { display: none; }
+  .hud { margin-bottom: 3px; }
 }

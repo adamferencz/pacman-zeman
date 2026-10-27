@@ -29,6 +29,8 @@ Hru můžeš okamžitě hrát online v prohlížeči zde:
 | **M** | Vypnout / zapnout zvuk (Mute) |
 | **Virtuální D-Pad** | Dotykové ovládání pro mobily a tablety |
 
+Na telefonu lze směr změnit také tahem prstu po herním plánu. Tlačítka pod bludištěm fungují i na úzké obrazovce; ovládací panel má přepínač tlačítek a režim celé obrazovky. Hra začíná až klepnutím na **HRÁT HRU** nebo na směrové tlačítko, takže si lze nejdřív přečíst pravidla.
+
 ---
 
 ## ✨ Splněné studentské požadavky

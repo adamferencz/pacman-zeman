@@ -1310,7 +1310,8 @@ class Game {
       { x: 6, y: 14 },
       { x: 21, y: 14 }
     ];
-    const spot = attackSpots[Math.floor(Math.random() * attackSpots.length)];
+    const reachableSpots = attackSpots.filter(spot => this.pacman.canMoveToTile(spot.x, spot.y));
+    const spot = reachableSpots[Math.floor(Math.random() * reachableSpots.length)];
     this.attackBonus = {
       tileX: spot.x,
       tileY: spot.y,
@@ -1509,13 +1510,6 @@ class Game {
         touchStartX = e.touches[0].clientX;
         touchStartY = e.touches[0].clientY;
 
-        // If on start modal, touch immediately begins the game
-        if (this.state === 'START') {
-          this.sound.init();
-          this.startModal.classList.add('hidden');
-          this.state = 'PLAYING';
-          this.showBanner('START!', 1200);
-        }
       }
     };
 
