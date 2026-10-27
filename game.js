@@ -1498,23 +1498,121 @@ class Game {
       }
     });
 
-    // Touch / Virtual D-pad
-    document.querySelectorAll('.dpad-btn').forEach(btn => {
+    // ==========================================
+    // MOBILE SWIPE GESTURE CONTROLS
+    // ==========================================
+    let touchStartX = 0;
+    let touchStartY = 0;
+
+    const onTouchStart = (e) => {
+      if (e.touches && e.touches.length > 0) {
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+
+        // If on start modal, touch immediately begins the game
+        if (this.state === 'START') {
+          this.sound.init();
+          this.startModal.classList.add('hidden');
+          this.state = 'PLAYING';
+          this.showBanner('START!', 1200);
+        }
+      }
+    };
+
+    const onTouchMove = (e) => {
+      if (this.state !== 'PLAYING' || !e.touches || e.touches.length === 0) return;
+      e.preventDefault(); // Disable browser scroll/pull-down reload
+
+      const curX = e.touches[0].clientX;
+      const curY = e.touches[0].clientY;
+      const dx = curX - touchStartX;
+      const dy = curY - touchStartY;
+      const dist = Math.hypot(dx, dy);
+
+      // Trigger direction steering after 16px swipe
+      if (dist >= 16) {
+        if (Math.abs(dx) > Math.abs(dy)) {
+          this.pacman.desiredDir = dx > 0 ? DIR.RIGHT : DIR.LEFT;
+        } else {
+          this.pacman.desiredDir = dy > 0 ? DIR.DOWN : DIR.UP;
+        }
+
+        if (navigator.vibrate) navigator.vibrate(10);
+
+        // Reset anchor to current point for smooth continuous steering
+        touchStartX = curX;
+        touchStartY = curY;
+      }
+    };
+
+    const canvasWrapper = document.getElementById('canvasWrapper');
+    if (canvasWrapper) {
+      canvasWrapper.addEventListener('touchstart', onTouchStart, { passive: false });
+      canvasWrapper.addEventListener('touchmove', onTouchMove, { passive: false });
+    }
+
+    // ==========================================
+    // VIRTUAL ON-SCREEN D-PAD BUTTONS
+    // ==========================================
+    const dpadButtons = document.querySelectorAll('.dpad-btn');
+    dpadButtons.forEach(btn => {
       const handlePress = (e) => {
         e.preventDefault();
+        e.stopPropagation();
         this.sound.init();
+
+        if (this.state === 'START') {
+          this.startModal.classList.add('hidden');
+          this.state = 'PLAYING';
+          this.showBanner('START!', 1200);
+        }
+
         if (this.state !== 'PLAYING') return;
         const dirName = btn.dataset.dir;
         if (dirName === 'up') this.pacman.desiredDir = DIR.UP;
         if (dirName === 'down') this.pacman.desiredDir = DIR.DOWN;
         if (dirName === 'left') this.pacman.desiredDir = DIR.LEFT;
         if (dirName === 'right') this.pacman.desiredDir = DIR.RIGHT;
+
+        btn.classList.add('active');
+        if (navigator.vibrate) navigator.vibrate(15);
       };
+
+      const handleRelease = (e) => {
+        btn.classList.remove('active');
+      };
+
       btn.addEventListener('touchstart', handlePress, { passive: false });
+      btn.addEventListener('touchend', handleRelease, { passive: false });
       btn.addEventListener('mousedown', handlePress);
+      btn.addEventListener('mouseup', handleRelease);
+      btn.addEventListener('mouseleave', handleRelease);
     });
 
-    // Button interactions
+    // ==========================================
+    // HUD ACTION BUTTONS (TOGGLES & AUDIO)
+    // ==========================================
+    const touchControls = document.getElementById('touchControls');
+    const dpadToggleBtn = document.getElementById('dpadToggleBtn');
+    if (dpadToggleBtn && touchControls) {
+      dpadToggleBtn.addEventListener('click', () => {
+        touchControls.classList.toggle('hidden');
+        const isHidden = touchControls.classList.contains('hidden');
+        dpadToggleBtn.style.opacity = isHidden ? '0.45' : '1.0';
+      });
+    }
+
+    const fullscreenBtn = document.getElementById('fullscreenBtn');
+    if (fullscreenBtn) {
+      fullscreenBtn.addEventListener('click', () => {
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen().catch(() => {});
+        } else {
+          document.exitFullscreen().catch(() => {});
+        }
+      });
+    }
+
     document.getElementById('startBtn').addEventListener('click', () => {
       this.sound.init();
       this.startModal.classList.add('hidden');

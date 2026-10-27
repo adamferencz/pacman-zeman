@@ -1,5 +1,5 @@
 /* ==========================================================================
-   PAC-MAN: THE MAN EDITION - Neon Cyberpunk Style Sheet
+   PAC-MAN: THE MAN EDITION - Neon Cyberpunk Style Sheet & Mobile Optimizations
    ========================================================================== */
 
 :root {
@@ -25,6 +25,14 @@
   padding: 0;
   user-select: none;
   -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow-x: hidden;
+  touch-action: manipulation;
 }
 
 body {
@@ -34,9 +42,8 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
-  overflow-x: hidden;
-  padding: 10px;
+  min-height: 100dvh;
+  padding: 8px;
 }
 
 /* Background grid pattern */
@@ -65,11 +72,11 @@ body::before {
   box-shadow: 
     0 0 30px rgba(0, 229, 255, 0.25),
     inset 0 0 15px rgba(0, 0, 0, 0.8);
-  padding: 16px;
+  padding: 12px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  max-width: 600px;
+  max-width: 580px;
   width: 100%;
 }
 
@@ -83,9 +90,9 @@ body::before {
   background: #020617;
   border: 1px solid #1e293b;
   border-radius: 8px;
-  padding: 10px 14px;
-  margin-bottom: 12px;
-  gap: 8px;
+  padding: 8px 10px;
+  margin-bottom: 8px;
+  gap: 6px;
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.6);
 }
 
@@ -93,20 +100,20 @@ body::before {
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-width: 60px;
+  min-width: 48px;
 }
 
 .hud-label {
   font-family: var(--font-retro);
-  font-size: 8px;
+  font-size: 7.5px;
   color: var(--text-muted);
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
   margin-bottom: 2px;
 }
 
 .hud-value {
   font-family: var(--font-retro);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: bold;
 }
 
@@ -132,14 +139,14 @@ body::before {
 
 .lives-icons {
   display: flex;
-  gap: 4px;
+  gap: 3px;
   align-items: center;
-  height: 18px;
+  height: 16px;
 }
 
 .life-icon {
-  width: 14px;
-  height: 14px;
+  width: 13px;
+  height: 13px;
   background-color: var(--pacman-color);
   border-radius: 50%;
   box-shadow: 0 0 6px var(--pacman-glow);
@@ -149,7 +156,7 @@ body::before {
 
 .hud-controls {
   display: flex;
-  gap: 6px;
+  gap: 5px;
 }
 
 /* Boss Health Bar */
@@ -158,8 +165,8 @@ body::before {
   background: #1e1014;
   border: 1px solid #7f1d1d;
   border-radius: 6px;
-  padding: 6px 12px;
-  margin-bottom: 8px;
+  padding: 5px 10px;
+  margin-bottom: 6px;
   animation: pulse-border 1.2s infinite alternate;
 }
 
@@ -172,14 +179,14 @@ body::before {
   display: flex;
   justify-content: space-between;
   font-family: var(--font-retro);
-  font-size: 10px;
-  margin-bottom: 4px;
+  font-size: 9px;
+  margin-bottom: 3px;
   color: #fca5a5;
 }
 
 .boss-bar-bg {
   width: 100%;
-  height: 12px;
+  height: 10px;
   background: #450a0a;
   border-radius: 4px;
   overflow: hidden;
@@ -196,10 +203,10 @@ body::before {
 /* Bonus Badges & Progress Bars */
 .bonus-status-container {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   width: 100%;
-  margin-bottom: 8px;
-  min-height: 28px;
+  margin-bottom: 6px;
+  min-height: 24px;
 }
 
 .bonus-badge {
@@ -209,8 +216,8 @@ body::before {
   background: rgba(6, 182, 212, 0.15);
   border: 1px solid #06b6d4;
   border-radius: 6px;
-  padding: 4px 8px;
-  gap: 8px;
+  padding: 3px 6px;
+  gap: 6px;
   box-shadow: 0 0 8px rgba(6, 182, 212, 0.4);
 }
 
@@ -221,11 +228,11 @@ body::before {
 }
 
 .badge-icon {
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .badge-name {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.5px;
   white-space: nowrap;
@@ -233,7 +240,7 @@ body::before {
 
 .badge-meter {
   flex: 1;
-  height: 8px;
+  height: 7px;
   background: rgba(0, 0, 0, 0.6);
   border-radius: 4px;
   overflow: hidden;
@@ -255,8 +262,8 @@ body::before {
 
 .badge-time {
   font-family: var(--font-retro);
-  font-size: 9px;
-  min-width: 32px;
+  font-size: 8.5px;
+  min-width: 28px;
   text-align: right;
 }
 
@@ -273,13 +280,18 @@ body::before {
   display: flex;
   justify-content: center;
   align-items: center;
+  touch-action: none;
+  max-width: 100%;
 }
 
 canvas {
   display: block;
   max-width: 100%;
   height: auto;
+  max-height: 65vh;
+  object-fit: contain;
   image-rendering: pixelated;
+  touch-action: none;
 }
 
 /* Announcement Banner Overlay */
@@ -288,10 +300,10 @@ canvas {
   top: 40%;
   left: 0;
   width: 100%;
-  background: rgba(0, 0, 0, 0.88);
+  background: rgba(0, 0, 0, 0.9);
   border-top: 3px solid #ef4444;
   border-bottom: 3px solid #ef4444;
-  padding: 16px 0;
+  padding: 14px 0;
   text-align: center;
   z-index: 20;
   box-shadow: 0 0 30px rgba(239, 68, 68, 0.8);
@@ -305,7 +317,7 @@ canvas {
 
 .banner-text {
   font-family: var(--font-retro);
-  font-size: 16px;
+  font-size: 15px;
   color: #fee2e2;
   text-shadow: 0 0 12px #ef4444;
   letter-spacing: 2px;
@@ -324,35 +336,38 @@ canvas {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(3, 7, 18, 0.92);
+  background: rgba(3, 7, 18, 0.94);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 30;
   backdrop-filter: blur(4px);
+  padding: 10px;
 }
 
 .modal-content {
   background: #090e1a;
   border: 2px solid var(--wall-neon);
   border-radius: 12px;
-  padding: 24px;
+  padding: 18px 16px;
   text-align: center;
-  max-width: 88%;
+  max-width: 95%;
+  max-height: 94%;
+  overflow-y: auto;
   box-shadow: 0 0 35px var(--wall-glow);
 }
 
 .game-title {
   font-family: var(--font-retro);
-  font-size: 20px;
+  font-size: 18px;
   color: #00f0ff;
   text-shadow: 0 0 12px rgba(0, 240, 255, 0.8);
-  line-height: 1.5;
-  margin-bottom: 14px;
+  line-height: 1.4;
+  margin-bottom: 10px;
 }
 
 .game-title .subtitle {
-  font-size: 11px;
+  font-size: 10px;
   color: #f43f5e;
   text-shadow: 0 0 10px rgba(244, 63, 94, 0.8);
   letter-spacing: 2px;
@@ -362,17 +377,17 @@ canvas {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
+  gap: 10px;
   background: rgba(239, 68, 68, 0.12);
   border: 1px dashed #ef4444;
   border-radius: 8px;
-  padding: 8px 12px;
-  margin-bottom: 14px;
+  padding: 6px 10px;
+  margin-bottom: 10px;
 }
 
 .teaser-img {
-  width: 48px;
-  height: 48px;
+  width: 42px;
+  height: 42px;
   object-fit: cover;
   border-radius: 50%;
   border: 2px solid #ef4444;
@@ -380,7 +395,7 @@ canvas {
 }
 
 .teaser-text {
-  font-size: 13px;
+  font-size: 12px;
   color: #fca5a5;
   text-align: left;
 }
@@ -388,12 +403,12 @@ canvas {
 .features-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   text-align: left;
-  font-size: 13px;
-  margin-bottom: 14px;
+  font-size: 12px;
+  margin-bottom: 12px;
   background: #020617;
-  padding: 10px;
+  padding: 8px 10px;
   border-radius: 8px;
   border: 1px solid #1e293b;
 }
@@ -405,20 +420,26 @@ canvas {
 }
 
 .feat-icon {
-  font-size: 16px;
+  font-size: 15px;
 }
 
 .controls-guide {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text-muted);
-  margin-bottom: 18px;
+  margin-bottom: 14px;
+}
+
+.mobile-hint {
+  color: #38bdf8;
+  margin-top: 4px;
+  font-weight: 600;
 }
 
 /* Buttons */
 .arcade-btn {
   font-family: var(--font-retro);
-  font-size: 12px;
-  padding: 12px 24px;
+  font-size: 11px;
+  padding: 10px 18px;
   color: #fff;
   background: linear-gradient(180deg, #0284c7, #0369a1);
   border: 1px solid #38bdf8;
@@ -426,6 +447,7 @@ canvas {
   cursor: pointer;
   box-shadow: 0 0 15px rgba(56, 189, 248, 0.5);
   transition: all 0.15s ease;
+  touch-action: manipulation;
 }
 
 .arcade-btn:hover {
@@ -439,8 +461,8 @@ canvas {
 }
 
 .icon-btn {
-  font-size: 14px;
-  padding: 4px 8px;
+  font-size: 13px;
+  padding: 5px 8px;
   background: #0f172a;
   border-color: #334155;
   box-shadow: none;
@@ -453,8 +475,8 @@ canvas {
 
 .start-btn {
   width: 100%;
-  font-size: 14px;
-  padding: 14px 20px;
+  font-size: 13px;
+  padding: 12px 18px;
   background: linear-gradient(180deg, #06b6d4, #0891b2);
   border-color: #22d3ee;
 }
@@ -471,18 +493,18 @@ canvas {
 }
 
 .result-stats {
-  font-size: 16px;
-  margin: 18px 0;
+  font-size: 15px;
+  margin: 14px 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .new-record {
   font-family: var(--font-retro);
-  font-size: 12px;
+  font-size: 11px;
   color: #fbbf24;
-  margin-top: 8px;
+  margin-top: 6px;
   animation: pulse-gold 0.8s infinite alternate;
 }
 
@@ -491,45 +513,95 @@ canvas {
   100% { transform: scale(1.05); text-shadow: 0 0 18px #fef08a; }
 }
 
-/* Virtual Touch D-Pad */
+/* ==========================================================================
+   MOBILE CONTROLS: ERGONOMIC CROSS D-PAD
+   ========================================================================== */
 .touch-controls {
-  display: none;
+  display: flex;
   flex-direction: column;
   align-items: center;
-  margin-top: 14px;
-  gap: 6px;
+  margin-top: 10px;
+  gap: 4px;
   width: 100%;
+  touch-action: none;
 }
 
-.dpad-row {
-  display: flex;
-  gap: 8px;
+.dpad-cross {
+  display: grid;
+  grid-template-columns: 56px 56px 56px;
+  grid-template-rows: 50px 50px 50px;
+  gap: 4px;
+  justify-content: center;
   align-items: center;
+  background: rgba(2, 6, 23, 0.7);
+  padding: 6px;
+  border-radius: 20px;
+  border: 1px solid #1e293b;
+  box-shadow: 0 0 15px rgba(0, 229, 255, 0.15);
 }
 
-.dpad-center {
-  width: 50px;
-  height: 50px;
+.dpad-core {
+  grid-column: 2;
+  grid-row: 2;
+  width: 100%;
+  height: 100%;
+  background: #0f172a;
+  border-radius: 8px;
+  border: 1px solid #1e293b;
 }
 
 .dpad-btn {
-  width: 54px;
-  height: 54px;
+  width: 100%;
+  height: 100%;
   background: #0f172a;
   border: 2px solid #0284c7;
   border-radius: 10px;
   color: #38bdf8;
-  font-size: 20px;
+  font-size: 22px;
   display: flex;
   justify-content: center;
   align-items: center;
-  box-shadow: 0 0 10px rgba(2, 132, 199, 0.4);
+  box-shadow: 0 0 10px rgba(2, 132, 199, 0.35);
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: all 0.08s ease;
 }
 
-.dpad-btn:active {
+.dpad-up {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.dpad-left {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.dpad-right {
+  grid-column: 3;
+  grid-row: 2;
+}
+
+.dpad-down {
+  grid-column: 2;
+  grid-row: 3;
+}
+
+.dpad-btn:active,
+.dpad-btn.active {
   background: #0284c7;
-  color: #fff;
-  transform: scale(0.95);
+  color: #ffffff;
+  border-color: #38bdf8;
+  box-shadow: 0 0 18px rgba(56, 189, 248, 0.9);
+  transform: scale(0.92);
+}
+
+.touch-hint {
+  font-size: 11px;
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
+  text-align: center;
+  margin-top: 2px;
 }
 
 /* Utility */
@@ -537,21 +609,68 @@ canvas {
   display: none !important;
 }
 
-/* Responsive adjustments */
-@media (max-width: 600px) {
-  .arcade-cabinet {
-    padding: 10px;
+/* ==========================================================================
+   RESPONSIVE ADJUSTMENTS FOR MOBILES & TABLETS
+   ========================================================================== */
+@media (max-width: 640px) {
+  body {
+    padding: 4px;
+    align-items: flex-start;
   }
+
+  .arcade-cabinet {
+    padding: 6px;
+    border: none;
+    box-shadow: none;
+    border-radius: 6px;
+    max-width: 100vw;
+  }
+
   .hud {
     padding: 6px 8px;
+    margin-bottom: 6px;
+    gap: 4px;
   }
+
+  .hud-item {
+    min-width: 42px;
+  }
+
   .hud-label {
-    font-size: 7px;
+    font-size: 6.5px;
   }
+
   .hud-value {
     font-size: 11px;
   }
-  .touch-controls {
-    display: flex;
+
+  .hud-controls .icon-btn {
+    padding: 4px 6px;
+    font-size: 11px;
+  }
+
+  .dpad-cross {
+    grid-template-columns: 50px 50px 50px;
+    grid-template-rows: 44px 44px 44px;
+    gap: 3px;
+  }
+
+  .dpad-btn {
+    font-size: 18px;
+  }
+}
+
+@media (max-width: 400px) {
+  .hud-item {
+    min-width: 36px;
+  }
+  
+  .hud-value {
+    font-size: 10px;
+  }
+
+  .dpad-cross {
+    grid-template-columns: 46px 46px 46px;
+    grid-template-rows: 40px 40px 40px;
   }
 }
